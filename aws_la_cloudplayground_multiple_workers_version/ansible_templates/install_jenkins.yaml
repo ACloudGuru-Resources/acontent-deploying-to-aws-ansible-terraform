@@ -4,6 +4,9 @@
   remote_user: ec2-user
   become_user: root
   tasks:
+    - name: install epel
+      shell: /usr/bin/amazon-linux-extras install epel -y
+
     - name: install dependencies
       yum:
         name: "{{ package }} "
@@ -13,7 +16,7 @@
         - wget
         - java-1.8.0-openjdk-devel
         - git
-      
+        - daemonize
     - name: clone repo
       git:
         repo: https://github.com/linuxacademy/content-terraform-jenkins.git
@@ -23,40 +26,40 @@
       get_url:
         url: https://pkg.jenkins.io/redhat/jenkins.repo
         dest: /etc/yum.repos.d/jenkins.repo
-    
+
     - name: Import Jenkins Repo GPG key
       rpm_key:
         state: present
         key: https://pkg.jenkins.io/redhat/jenkins.io.key
- 
+
     - name: install Jenkins
       yum:
         name: jenkins
         state: present
 
     - name: Temporarily Stop Jenkins
-      service: 
-        name: jenkins 
+      service:
+        name: jenkins
         state: stopped
-   
+
     - name: Modify user shell
       user:
         name: jenkins
         shell: /bin/bash
-    
-    
+
+
     - name: Delete Jenkins default dir
       file:
         state: absent
         path: /var/lib/jenkins
-    
+
     - name: Copy over cloned Jenkins /var/lib/jenkins
       copy:
         remote_src: yes
         src: /tmp/jenkins/jenkins
         dest: /var/lib
-        
-         
+
+
     - name: Restore jenkins user ownership on /var/lib/jenkins
       file:
         path: /var/lib/jenkins
